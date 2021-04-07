@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "streamdeck_prof/profile"
-require "streamdeck_prof/empty_profiles"
+require "streamdeck_prof/device_data"
 require "securerandom"
 
 module StreamdeckProf
@@ -29,7 +29,7 @@ module StreamdeckProf
     end
 
     def new_profile(type: :xl)
-      manifest = StreamdeckProf::EmptyProfiles.const_get(type.upcase)
+      manifest = StreamdeckProf::DeviceData.const_get(type.upcase)[:empty_profile]
       uuid = SecureRandom.uuid.upcase
       profile_path = File.join(@profiles_dir, "#{uuid}.sdProfile")
       manifest_path = File.join(profile_path, "manifest.json")
