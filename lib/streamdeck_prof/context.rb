@@ -9,7 +9,9 @@ module StreamdeckProf
     end
 
     def profiles
-      @profiles ||= Dir.glob(File.join(@profiles_dir, "*.sdProfile")).map { |profile_path| Profile.new(profile_path) }
+      @profiles ||= Dir.glob(File.join(@profiles_dir, "*.sdProfile"))
+                       .map { |profile_path| Profile.new(profile_path) }
+                       .freeze
     end
 
     def profile_for_application(application, exact: true)
