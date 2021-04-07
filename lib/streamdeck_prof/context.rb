@@ -12,6 +12,18 @@ module StreamdeckProf
       @profiles ||= Dir.glob(File.join(@profiles_dir, "*.sdProfile")).map { |profile_path| Profile.new(profile_path) }
     end
 
+    def profile_for_application(application, exact: true)
+      if exact
+        profiles.find { |p| p.app_identifier == application }
+      else
+        profiles.find { |p| p.app_identifier&.include?(application) }
+      end
+    end
+
+    def profile_by_name(name)
+      profiles.find { |p| p.name == name }
+    end
+
     private
 
     def default_profiles_dir
