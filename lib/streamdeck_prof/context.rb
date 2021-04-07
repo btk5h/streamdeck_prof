@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "streamdeck_prof/profile"
+require "streamdeck_prof/empty_profiles"
+require "securerandom"
 
 module StreamdeckProf
   class Context
@@ -24,6 +26,20 @@ module StreamdeckProf
 
     def profile_by_name(name)
       profiles.find { |p| p.name == name }
+    end
+
+    def new_profile(type: :xl)
+      manifest = StreamdeckProf::EmptyProfiles.const_get(type.upcase)
+      uuid = SecureRandom.uuid.upcase
+      profile_path = File.join(@profiles_dir, "#{uuid}.sdProfile")
+      manifest_path = File.join(profile_path, "manifest.json")
+
+      Dir.mkdir(profile_path)
+      File.write(manifest_path, JSON.dump(manifest))
+
+      @profiles = nil
+
+      Profile.new(profile_path)
     end
 
     private
