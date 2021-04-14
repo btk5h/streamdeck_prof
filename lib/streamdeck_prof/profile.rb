@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "streamdeck_prof/action"
 
 module StreamdeckProf
   class Profile
@@ -9,6 +10,7 @@ module StreamdeckProf
     def initialize(profile_dir)
       @profile_dir = profile_dir
       @manifest = JSON.parse(File.read(manifest_path))
+      @actions_cache = {}
     end
 
     def uuid
@@ -29,6 +31,18 @@ module StreamdeckProf
 
     def app_identifier=(app_identifier)
       manifest["AppIdentifier"] = app_identifier
+    end
+
+    def action(x, y)
+      key = "#{x},#{y}"
+      return nil if @manifest["Actions"][key].nil?
+
+      action!(x, y)
+    end
+
+    def action!(x, y)
+      key = "#{x},#{y}"
+      @actions_cache[key] ||= StreamdeckProf::Action.new(self, x, y)
     end
 
     def save
