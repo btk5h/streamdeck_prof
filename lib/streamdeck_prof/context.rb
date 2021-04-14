@@ -24,6 +24,10 @@ module StreamdeckProf
       end
     end
 
+    def default_profile
+      profile_for_application("*")
+    end
+
     def profile_by_name(name)
       profiles.find { |p| p.name == name }
     end
