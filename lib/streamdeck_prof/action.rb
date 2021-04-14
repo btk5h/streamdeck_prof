@@ -2,7 +2,7 @@
 
 module StreamdeckProf
   class Action
-    attr_reader :profie, :position_x, :position_y
+    attr_reader :profile, :position_x, :position_y
 
     def initialize(profile, x, y)
       @profile = profile
