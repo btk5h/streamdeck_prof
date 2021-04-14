@@ -33,9 +33,13 @@ module StreamdeckProf
       manifest["AppIdentifier"] = app_identifier
     end
 
-    def action(x, y)
+    def has_action?(x, y)
       key = "#{x},#{y}"
-      return nil if @manifest["Actions"][key].nil?
+      !@manifest["Actions"][key].nil?
+    end
+
+    def action(x, y)
+      return nil unless has_action?(x, y)
 
       action!(x, y)
     end
