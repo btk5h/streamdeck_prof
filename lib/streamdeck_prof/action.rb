@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+require "streamdeck_prof/file_list"
+
 module StreamdeckProf
   class Action
-    attr_accessor :config
+    attr_accessor :config, :files
 
     def initialize(config)
       @config = config
+      @files = FileList.new
     end
 
     def uuid
@@ -45,5 +48,9 @@ module StreamdeckProf
     end
 
     alias to_h to_hash
+
+    def save(storage_path)
+      files.save(storage_path)
+    end
   end
 end

@@ -3,6 +3,7 @@
 require "json"
 require "streamdeck_prof/action"
 require "streamdeck_prof/action_list"
+require "streamdeck_prof/lazy_file"
 
 module StreamdeckProf
   class Profile
@@ -37,7 +38,7 @@ module StreamdeckProf
       @actions ||= StreamdeckProf::ActionList.new.tap do |actions|
         actions_hash = actions.to_h
         manifest["Actions"].each do |key, value|
-          actions_hash[key] = StreamdeckProf::Action.new(value)
+          actions_hash[key] = make_action(key, value)
         end
       end
     end
@@ -48,6 +49,7 @@ module StreamdeckProf
 
     def save
       sync_manifest
+      @actions&.to_h&.each { |position_key, action| action.save(action_storage_path(position_key)) }
       File.write(manifest_path, JSON.dump(manifest))
     end
 
@@ -59,6 +61,26 @@ module StreamdeckProf
 
     def manifest_path
       File.join(profile_dir, "manifest.json")
+    end
+
+    def make_action(position_key, config)
+      StreamdeckProf::Action.new(config).tap do |action|
+        storage_path = action_storage_path(position_key)
+        Dir.glob(File.join(storage_path, "**/*"))
+           .reject { |path| File.directory?(path) }
+           .each do |path|
+             file_key = relative_path(storage_path, path)
+             action.files[file_key] = StreamdeckProf::LazyFile.new(path)
+           end
+      end
+    end
+
+    def action_storage_path(position_key)
+      File.join(profile_dir, position_key)
+    end
+
+    def relative_path(from_path, to_path)
+      Pathname.new(to_path).relative_path_from(Pathname.new(from_path)).to_s
     end
   end
 end
