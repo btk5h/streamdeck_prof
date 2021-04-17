@@ -2,6 +2,7 @@
 
 require "json"
 require "streamdeck_prof/action"
+require "streamdeck_prof/action_list"
 
 module StreamdeckProf
   class Profile
@@ -10,7 +11,6 @@ module StreamdeckProf
     def initialize(profile_dir)
       @profile_dir = profile_dir
       @manifest = JSON.parse(File.read(manifest_path))
-      @actions_cache = {}
     end
 
     def uuid
@@ -33,27 +33,29 @@ module StreamdeckProf
       manifest["AppIdentifier"] = app_identifier
     end
 
-    def has_action?(x, y)
-      key = "#{x},#{y}"
-      !@manifest["Actions"][key].nil?
+    def actions
+      @actions ||= StreamdeckProf::ActionList.new.tap do |actions|
+        actions_hash = actions.to_h
+        manifest["Actions"].each do |key, value|
+          actions_hash[key] = StreamdeckProf::Action.new(value)
+        end
+      end
     end
 
-    def action(x, y)
-      return nil unless has_action?(x, y)
-
-      action!(x, y)
-    end
-
-    def action!(x, y)
-      key = "#{x},#{y}"
-      @actions_cache[key] ||= StreamdeckProf::Action.new(self, x, y)
+    def actions=(actions)
+      @actions = actions || StreamdeckProf::ActionList.new
     end
 
     def save
+      sync_manifest
       File.write(manifest_path, JSON.dump(manifest))
     end
 
     private
+
+    def sync_manifest
+      manifest["Actions"] = actions.to_h.transform_values(&:to_h) unless @actions.nil?
+    end
 
     def manifest_path
       File.join(profile_dir, "manifest.json")
